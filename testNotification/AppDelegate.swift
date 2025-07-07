@@ -1,12 +1,20 @@
 import UIKit
 import UserNotifications
+import SwiftUI
+import FirebaseCore
+import FirebaseMessaging
+import Firebase
 
-class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate,MessagingDelegate {
 
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
+        
+        FirebaseApp.configure()
+        
+        Messaging.messaging().delegate = self
         
         // Set delegate to self
         UNUserNotificationCenter.current().delegate = self
@@ -27,6 +35,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         print("✅ Device Token: \(token)")
+        
+        Messaging.messaging().apnsToken = deviceToken
     }
 
     func application(_ application: UIApplication,
@@ -48,5 +58,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
         print("📲 Push tapped: \(response.notification.request.content.userInfo)")
         completionHandler()
+    }
+    
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        print("Firebase FCM token: \(String(describing: fcmToken))")
+        // Send this token to your server
     }
 }
